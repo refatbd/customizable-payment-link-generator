@@ -21,6 +21,11 @@ if ($settings['pretty_link_enabled'] === 'true' && !empty($settings['pretty_link
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Canceled</title>
+	<?php if (!empty($settings['favicon_url'])): ?>
+        <link rel="icon" href="<?php echo htmlspecialchars($settings['favicon_url']); ?>" type="image/png">
+    <?php else: ?>
+        <link rel="icon" href="<?php echo pp_get_site_url(); ?>/pp-content/plugins/modules/customizable-payment-link-generator/assets/icon.png" type="image/png">
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }

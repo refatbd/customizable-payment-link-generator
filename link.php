@@ -35,6 +35,14 @@ if ($settings['link_enabled'] !== 'true') {
     $status_title = "Payment Link Disabled";
     $status_message = "This payment link is currently not active. Please contact the administrator for assistance.";
     
+    //  Prepare favicon HTML before the HEREDOC
+    $favicon_link_html = '';
+    if (!empty($settings['favicon_url'])) {
+        $favicon_link_html = '<link rel="icon" href="' . htmlspecialchars($settings['favicon_url']) . '" type="image/png">';
+    } else {
+        $favicon_link_html = '<link rel="icon" href="' . pp_get_site_url() . '/pp-content/plugins/modules/customizable-payment-link-generator/assets/icon.png" type="image/png">';
+    }
+
     // Use a structure similar to cancel.php for a consistent look.
     echo <<<HTML
 <!DOCTYPE html>
@@ -43,6 +51,7 @@ if ($settings['link_enabled'] !== 'true') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{$page_title}</title>
+    {$favicon_link_html}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -145,6 +154,11 @@ $instruction_text = nl2br(htmlspecialchars(stripslashes(str_replace('\r\n', "\n"
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($settings['link_title']); ?></title>
+	<?php if (!empty($settings['favicon_url'])): ?>
+        <link rel="icon" href="<?php echo htmlspecialchars($settings['favicon_url']); ?>" type="image/png">
+    <?php else: ?>
+        <link rel="icon" href="<?php echo pp_get_site_url(); ?>/pp-content/plugins/modules/customizable-payment-link-generator/assets/icon.png" type="image/png">
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>

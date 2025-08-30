@@ -5,7 +5,7 @@ if (!defined('pp_allowed_access')) {
 
 $settings = cplg_get_settings();
 
-
+// A sample list of currencies. You can populate this dynamically.
 $currencies = [
     'USD' => 'US Dollar',
     'EUR' => 'Euro',
@@ -82,6 +82,11 @@ $currencies = [
                         <label for="logo_url" class="form-label">Logo Image URL</label>
                         <input type="url" class="form-control" id="logo_url" name="logo_url" value="<?php echo htmlspecialchars($settings['logo_url']); ?>" placeholder="https://example.com/logo.png">
                         <small class="form-text text-muted">Leave blank to not display a logo.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="favicon_url" class="form-label">Favicon URL</label>
+                        <input type="url" class="form-control" id="favicon_url" name="favicon_url" value="<?php echo htmlspecialchars($settings['favicon_url']); ?>" placeholder="https://example.com/favicon.png">
+                        <small class="form-text text-muted">Leave blank to use the default favicon.</small>
                     </div>
                     <hr>
                     <div class="form-check form-switch mb-2">

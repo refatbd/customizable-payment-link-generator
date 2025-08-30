@@ -18,6 +18,7 @@ function cplg_get_settings() {
         'show_name' => 'true',
         'show_contact' => 'true',
         'logo_url' => '',
+        'favicon_url' => '',
         'show_footer_text' => 'true',
         'footer_text' => 'Payments are secure and encrypted with PipraPay',
         'pretty_link_enabled' => 'false',
@@ -47,6 +48,7 @@ if (isset($_POST['customizable-payment-link-generator-action'])) {
             'show_name' => isset($_POST['show_name']) ? 'true' : 'false',
             'show_contact' => isset($_POST['show_contact']) ? 'true' : 'false',
             'logo_url' => filter_var($_POST['logo_url'], FILTER_SANITIZE_URL),
+            'favicon_url' => filter_var($_POST['favicon_url'], FILTER_SANITIZE_URL),
             'show_footer_text' => isset($_POST['show_footer_text']) ? 'true' : 'false',
             'footer_text' => escape_string($_POST['footer_text']),
             'pretty_link_enabled' => isset($_POST['pretty_link_enabled']) ? 'true' : 'false',
@@ -66,7 +68,7 @@ if (isset($_POST['customizable-payment-link-generator-action'])) {
     }
 }
 
-
+// Renamed function to avoid conflicts
 function cplg_save_settings(string $plugin_slug, array $data_to_save) {
     $targetUrl = pp_get_site_url().'/admin/dashboard';
     $data = array_merge(['action' => 'plugin_update-submit', 'plugin_slug' => $plugin_slug], $data_to_save);
