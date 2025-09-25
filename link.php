@@ -26,8 +26,13 @@ if (!isset($conn) || $conn->connect_error) {
 }
 
 $settings = cplg_get_settings();
-$global_settings = pp_get_settings();
-$currency = htmlspecialchars($settings['link_currency']);
+global $global_setting_response; // Make the global settings variable available
+
+// Correctly determine the currency
+$currency = $settings['use_system_currency'] === 'true' && isset($global_setting_response['response'][0]['default_currency'])
+            ? htmlspecialchars($global_setting_response['response'][0]['default_currency'])
+            : htmlspecialchars($settings['link_currency']);
+
 
 if ($settings['link_enabled'] !== 'true') {
     // Display a styled "disabled" page instead of a plain die() message.
@@ -179,7 +184,7 @@ $instruction_text = nl2br(htmlspecialchars(stripslashes(str_replace('\r\n', "\n"
         .footer-text svg { vertical-align: middle; margin-right: 5px; width: 16px; height: 16px; }
         
         .instruction-card {
-            padding: 2rem; /* Reduced padding for a tighter look */
+            padding: 2rem;
         }
         .instruction-card h5 {
             font-weight: 600;

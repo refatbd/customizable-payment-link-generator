@@ -6,7 +6,7 @@
 $plugin_meta = [
     'Plugin Name'       => 'Customizable Payment Link Generator',
     'Description'       => 'A PipraPay module to generate a customizable payment link where users can enter a custom amount and other details to pay.',
-    'Version'           => '1.0.1',
+    'Version'           => '1.0.2',
     'Author'            => 'Refat Rahman',
     'Author URI'        => 'https://github.com/refatbd',
     'License'           => 'GPL-2.0+',

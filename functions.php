@@ -15,6 +15,7 @@ function cplg_get_settings() {
         'link_title' => 'Customizable Payment',
         'link_description' => 'Use this link to make a custom payment.',
         'link_currency' => 'USD',
+        'use_system_currency' => 'false',
         'show_name' => 'true',
         'show_contact' => 'true',
         'logo_url' => '',
@@ -30,6 +31,26 @@ function cplg_get_settings() {
     return array_merge($defaults, $settings);
 }
 
+function cplg_get_all_currencies() {
+    global $conn, $db_host, $db_user, $db_pass, $db_name, $db_prefix;
+    if (!isset($conn) || $conn->connect_error) {
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+        if ($conn->connect_error) {
+            return [];
+        }
+    }
+
+    $currencies = [];
+    $sql = "SELECT currency_code, currency_name FROM `{$db_prefix}currency`";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $currencies[$row['currency_code']] = $row['currency_name'];
+        }
+    }
+    return $currencies;
+}
+
 
 if (isset($_POST['customizable-payment-link-generator-action'])) {
     header('Content-Type: application/json');
@@ -40,11 +61,15 @@ if (isset($_POST['customizable-payment-link-generator-action'])) {
         $settings = pp_get_plugin_setting($plugin_slug);
         if (!is_array($settings)) $settings = [];
 
+        $use_system_currency = isset($_POST['use_system_currency']) ? 'true' : 'false';
+        $link_currency = $use_system_currency === 'true' ? pp_get_settings()['default_currency'] : escape_string($_POST['link_currency']);
+
         $new_settings = [
             'link_enabled' => isset($_POST['link_enabled']) ? 'true' : 'false',
             'link_title' => escape_string($_POST['link_title']),
             'link_description' => escape_string($_POST['link_description']),
-            'link_currency' => escape_string($_POST['link_currency']),
+            'use_system_currency' => $use_system_currency,
+            'link_currency' => $link_currency,
             'show_name' => isset($_POST['show_name']) ? 'true' : 'false',
             'show_contact' => isset($_POST['show_contact']) ? 'true' : 'false',
             'logo_url' => filter_var($_POST['logo_url'], FILTER_SANITIZE_URL),
