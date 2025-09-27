@@ -4,15 +4,9 @@ if (!defined('pp_allowed_access')) {
 }
 
 $settings = cplg_get_settings();
-
-// A sample list of currencies. You can populate this dynamically.
-$currencies = [
-    'USD' => 'US Dollar',
-    'EUR' => 'Euro',
-    'GBP' => 'British Pound',
-    'BDT' => 'Bangladeshi Taka',
-    'INR' => 'Indian Rupee',
-];
+$currencies = cplg_get_all_currencies();
+global $global_setting_response; // Bring the global settings into scope.
+$system_currency = isset($global_setting_response['response'][0]['default_currency']) ? $global_setting_response['response'][0]['default_currency'] : 'USD';
 
 ?>
 
@@ -23,6 +17,16 @@ $currencies = [
 <div class="row">
     <div class="col-lg-8">
         <div id="ajaxResponse" class="mb-3"></div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h4 class="card-title">Plugin Updates</h4></div>
+            <div class="card-body">
+                <p class="form-text">Check for new versions of the plugin directly from GitHub.</p>
+                <button id="checkForUpdatesBtn" class="btn btn-secondary">Check for Updates</button>
+                <div id="updateCheckResponse" class="mt-3"></div>
+            </div>
+        </div>
+        
         <div class="card mb-3">
             <div class="card-header"><h4 class="card-title">Customizable Link URL</h4></div>
             <div class="card-body">
@@ -60,9 +64,13 @@ $currencies = [
                         <label for="link_description" class="form-label">Link Description</label>
                         <textarea class="form-control" id="link_description" name="link_description" rows="3"><?php echo htmlspecialchars($settings['link_description']); ?></textarea>
                     </div>
+                     <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="use_system_currency" name="use_system_currency" <?php echo $settings['use_system_currency'] === 'true' ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="use_system_currency"><b>Use System Currency (<?php echo $system_currency; ?>)</b></label>
+                    </div>
                      <div class="mb-3">
                         <label for="link_currency" class="form-label">Currency</label>
-                        <select class="form-select" id="link_currency" name="link_currency">
+                        <select class="form-select" id="link_currency" name="link_currency" <?php echo $settings['use_system_currency'] === 'true' ? 'disabled' : ''; ?>>
                             <?php
                             $selected_currency = $settings['link_currency'];
                             foreach ($currencies as $code => $name) {
@@ -217,6 +225,60 @@ $(document).ready(function() {
         } else {
             $('#prettyLinkOptions').slideUp();
         }
+    });
+
+    $('#use_system_currency').on('change', function() {
+        const currencyDropdown = $('#link_currency');
+        if ($(this).is(':checked')) {
+            currencyDropdown.val('<?php echo $system_currency; ?>').prop('disabled', true);
+        } else {
+            currencyDropdown.prop('disabled', false);
+        }
+    });
+
+    // --- Update Checker ---
+    $('#checkForUpdatesBtn').on('click', function() {
+        const button = $(this);
+        const responseContainer = $('#updateCheckResponse');
+        const originalButtonText = button.html();
+        
+        button.html('<span class="spinner-border spinner-border-sm"></span> Checking...').prop('disabled', true);
+        responseContainer.html('');
+
+        $.ajax({
+            url: '',
+            type: 'POST',
+            data: { 'customizable-payment-link-generator-action': 'check_for_updates' },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    if (response.update_available) {
+                        const update = response.data;
+                        const changelog = update.changelog.replace(/\n/g, '<br>');
+                        const updateHtml = `
+                            <div class="alert alert-info mt-3">
+                                <h4 class="alert-heading">🚀 New Version Available!</h4>
+                                <p>A new version (<strong>${update.new_version}</strong>) is available.</p>
+                                <hr>
+                                <h5>Release Notes:</h5>
+                                <div>${changelog}</div>
+                                <a href="${update.download_url}" class="btn btn-success mt-3" target="_blank">Download Update</a>
+                            </div>`;
+                        responseContainer.html(updateHtml);
+                    } else {
+                        responseContainer.html(`<div class="alert alert-success mt-3">${response.message}</div>`);
+                    }
+                } else {
+                     responseContainer.html(`<div class="alert alert-danger mt-3">Error: ${response.message}</div>`);
+                }
+            },
+            error: function() {
+                responseContainer.html('<div class="alert alert-danger mt-3">An unexpected error occurred.</div>');
+            },
+            complete: function() {
+                button.html(originalButtonText).prop('disabled', false);
+            }
+        });
     });
 });
 </script>

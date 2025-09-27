@@ -91,6 +91,24 @@ if (isset($_POST['customizable-payment-link-generator-action'])) {
         }
         exit();
     }
+
+    if ($action === 'check_for_updates') {
+        $update_info = cplg_check_for_github_updates();
+        if ($update_info) {
+            echo json_encode([
+                'status' => true, 
+                'update_available' => true, 
+                'data' => $update_info
+            ]);
+        } else {
+            echo json_encode([
+                'status' => true, 
+                'update_available' => false, 
+                'message' => 'You are using the latest version of the plugin.'
+            ]);
+        }
+        exit();
+    }
 }
 
 // Renamed function to avoid conflicts
@@ -111,4 +129,50 @@ function cplg_save_settings(string $plugin_slug, array $data_to_save) {
     curl_close($ch);
     
     return in_array($http_code, [200, 302]);
+}
+
+// --- Update Checker ---
+
+function cplg_check_for_github_updates() {
+    $current_version = '1.0.2'; 
+    $github_repo = 'refatbd/customizable-payment-link-generator';
+
+    $api_url = "https://api.github.com/repos/{$github_repo}/releases/latest";
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $api_url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_USERAGENT => 'PipraPay Plugin Update Checker'
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if ($response) {
+        $release_data = json_decode($response, true);
+
+        if (isset($release_data['tag_name'])) {
+            $latest_version = ltrim($release_data['tag_name'], 'v');
+
+            if (version_compare($latest_version, $current_version, '>')) {
+                $download_url = '';
+                if (!empty($release_data['assets'])) {
+                    foreach ($release_data['assets'] as $asset) {
+                        if (strpos($asset['name'], '.zip') !== false) {
+                            $download_url = $asset['browser_download_url'];
+                            break;
+                        }
+                    }
+                }
+                
+                return [
+                    'new_version' => $latest_version,
+                    'download_url' => $download_url,
+                    'changelog' => $release_data['body']
+                ];
+            }
+        }
+    }
+
+    return null;
 }
