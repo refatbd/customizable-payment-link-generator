@@ -10,6 +10,8 @@ $system_currency = isset($global_setting_response['response'][0]['default_curren
 
 ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+
 <div class="page-header">
   <h1 class="page-header-title">Customizable Payment Link Generator</h1>
 </div>
@@ -17,15 +19,6 @@ $system_currency = isset($global_setting_response['response'][0]['default_curren
 <div class="row">
     <div class="col-lg-8">
         <div id="ajaxResponse" class="mb-3"></div>
-
-        <div class="card mb-3">
-            <div class="card-header"><h4 class="card-title">Plugin Updates</h4></div>
-            <div class="card-body">
-                <p class="form-text">Check for new versions of the plugin directly from GitHub.</p>
-                <button id="checkForUpdatesBtn" class="btn btn-secondary">Check for Updates</button>
-                <div id="updateCheckResponse" class="mt-3"></div>
-            </div>
-        </div>
         
         <div class="card mb-3">
             <div class="card-header"><h4 class="card-title">Customizable Link URL</h4></div>
@@ -161,6 +154,29 @@ RewriteRule ^<?php echo trim(htmlspecialchars($settings['pretty_link_slug']), '/
 
             <button type="submit" class="btn btn-primary">Save Settings</button>
         </form>
+
+        <div class="card mb-3 mt-3">
+            <div class="card-header"><h4 class="card-title">Plugin Updates</h4></div>
+            <div class="card-body">
+                <p class="form-text">Check for new versions of the plugin directly from GitHub.</p>
+                <button id="checkForUpdatesBtn" class="btn btn-secondary">Check for Updates</button>
+                <div id="updateCheckResponse" class="mt-3"></div>
+            </div>
+        </div>
+
+        <div class="developer-info" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px; text-align: center;">
+            <h5 class="developer-title" style="margin-bottom: 10px;">Plugin Developer Information</h5>
+            <p class="developer-name" style="margin-bottom: 5px; font-size: 16px;"><strong>Refat Rahman</strong></p>
+            <div class="developer-links">
+                <a href="https://www.facebook.com/rjrefat" target="_blank" style="margin-right: 10px; text-decoration: none;">
+                    <i class="fab fa-facebook-square" style="font-size: 24px;"></i> Facebook
+                </a>
+                <a href="https://github.com/refatbd/" target="_blank" style="text-decoration: none;">
+                    <i class="fab fa-github-square" style="font-size: 24px;"></i> Github
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -260,7 +276,7 @@ $(document).ready(function() {
                                 <h4 class="alert-heading">🚀 New Version Available!</h4>
                                 <p>A new version (<strong>${update.new_version}</strong>) is available.</p>
                                 <hr>
-                                <h5>Release Notes:</h5>
+                                NORMALIZED_TEXT:
                                 <div>${changelog}</div>
                                 <a href="${update.download_url}" class="btn btn-success mt-3" target="_blank">Download Update</a>
                             </div>`;

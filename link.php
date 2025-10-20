@@ -96,8 +96,11 @@ HTML;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = filter_input(INPUT_POST, 'amount', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-    $name = $settings['show_name'] === 'true' ? filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING) : 'Customer';
-    $email_or_phone = $settings['show_contact'] === 'true' ? filter_input(INPUT_POST, 'email_or_phone', FILTER_SANITIZE_STRING) : '';
+    
+    // --- FIX for Deprecated FILTER_SANITIZE_STRING ---
+    $name = $settings['show_name'] === 'true' ? filter_input(INPUT_POST, 'name', FILTER_DEFAULT) : 'Customer';
+    $email_or_phone = $settings['show_contact'] === 'true' ? filter_input(INPUT_POST, 'email_or_phone', FILTER_DEFAULT) : '';
+    // --- END FIX ---
 
     if (empty($amount) || $amount <= 0) {
         die('Invalid amount provided.');
@@ -142,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         $payment_page_url = pp_get_site_url() . "/payment/" . $pp_id;
-        header("Location: " . $payment_page_url);
+        header("Location: " . $payment_page_url); // This is line 145
         exit();
     } else {
         die("Error creating transaction: " . $stmt->error);

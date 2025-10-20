@@ -61,8 +61,17 @@ if (isset($_POST['customizable-payment-link-generator-action'])) {
         $settings = pp_get_plugin_setting($plugin_slug);
         if (!is_array($settings)) $settings = [];
 
+        global $global_setting_response;
+
         $use_system_currency = isset($_POST['use_system_currency']) ? 'true' : 'false';
-        $link_currency = $use_system_currency === 'true' ? pp_get_settings()['default_currency'] : escape_string($_POST['link_currency']);
+        
+        if ($use_system_currency === 'true') {
+            $link_currency = isset($global_setting_response['response'][0]['default_currency']) 
+                             ? $global_setting_response['response'][0]['default_currency'] 
+                             : 'USD'; // Fallback to USD
+        } else {
+            $link_currency = escape_string($_POST['link_currency']);
+        }
 
         $new_settings = [
             'link_enabled' => isset($_POST['link_enabled']) ? 'true' : 'false',
@@ -134,7 +143,7 @@ function cplg_save_settings(string $plugin_slug, array $data_to_save) {
 // --- Update Checker ---
 
 function cplg_check_for_github_updates() {
-    $current_version = '1.0.2'; 
+    $current_version = '1.0.3'; 
     $github_repo = 'refatbd/customizable-payment-link-generator';
 
     $api_url = "https://api.github.com/repos/{$github_repo}/releases/latest";
