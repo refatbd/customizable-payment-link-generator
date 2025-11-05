@@ -1,12 +1,12 @@
 <?php
-    if (!defined('pp_allowed_access')) {
-        die('Direct access not allowed');
-    }
+if (!defined('pp_allowed_access')) {
+    die('Direct access not allowed');
+}
 
 $plugin_meta = [
     'Plugin Name'       => 'Customizable Payment Link Generator',
-    'Description'       => 'A PipraPay module to generate a customizable payment link where users can enter a custom amount and other details to pay.',
-    'Version'           => '1.0.2',
+    'Description'       => 'A PipraPay module to generate multiple customizable payment links where users can enter a custom amount.',
+    'Version'           => '3.1.0',
     'Author'            => 'Refat Rahman',
     'Author URI'        => 'https://github.com/refatbd',
     'License'           => 'GPL-2.0+',

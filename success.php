@@ -1,5 +1,5 @@
 <?php
-// Load PipraPay environment to access settings
+// Load PipraPay environment
 if (file_exists(__DIR__."/../../../../pp-config.php")) {
     if (file_exists(__DIR__.'/../../../../pp-include/pp-controller.php')) {
         include_once(__DIR__."/../../../../pp-include/pp-controller.php");
@@ -8,30 +8,27 @@ if (file_exists(__DIR__."/../../../../pp-config.php")) {
 // Include the plugin's functions file
 require_once __DIR__ . '/functions.php';
 
-$settings = cplg_get_settings();
-
-$payment_link = pp_get_site_url() . '/pp-content/plugins/modules/customizable-payment-link-generator/link';
-if ($settings['pretty_link_enabled'] === 'true' && !empty($settings['pretty_link_slug'])) {
-    $payment_link = pp_get_site_url() . '/' . trim($settings['pretty_link_slug'], '/');
-}
-
 // Get transaction details
 $pp_id = $_GET['pp_id'] ?? null;
 $transaction_details = null;
+$settings = null;
+$link_id = null;
+$transaction_status = null; // Store status
+
 if ($pp_id) {
     $transaction = pp_get_transation($pp_id);
     if (isset($transaction['response'][0])) {
         $t = $transaction['response'][0];
-
-        // Redirect to pending page if payment is not completed
-        if ($t['transaction_status'] === 'pending') {
-            $base_url = pp_get_site_url() . "/pp-content/plugins/modules/customizable-payment-link-generator/";
-            header("Location: " . $base_url . "pending.php?pp_id=" . $pp_id);
-            exit();
-        }
+        $transaction_status = $t['transaction_status']; // Get status
 
         $metadata = isset($t['transaction_metadata']) ? json_decode($t['transaction_metadata'], true) : [];
         if (!is_array($metadata)) $metadata = [];
+        $link_id = $metadata['cplg_link_id'] ?? null;
+
+        // --- Sync stock for this transaction ---
+        // This function is safe and checks status/flags internally.
+        // It handles both immediate success and view-after-manual-approval.
+        cplg_sync_stock_for_transaction($pp_id);
 
         $transaction_details = [
             'amount' => htmlspecialchars($t['transaction_amount']),
@@ -44,6 +41,42 @@ if ($pp_id) {
             'gateway_trx_id' => htmlspecialchars($t['payment_verify_id'] ?? 'N/A')
         ];
     }
+}
+
+
+if ($link_id) {
+    $settings = cplg_get_link_settings($link_id);
+}
+if (!$settings) {
+    $settings = cplg_get_default_link();
+}
+
+if ($transaction_status === 'pending') {
+    $pending_url = '';
+    if ($settings['pretty_link_enabled'] === 'true') {
+        $slug_url_part = trim($settings['link_slug'], '/');
+        $pending_url = pp_get_site_url() . "/{$slug_url_part}/pending/" . $pp_id;
+    } else {
+        $base_url = pp_get_site_url() . "/pp-content/plugins/modules/customizable-payment-link-generator/";
+        $pending_url = $base_url . "pending.php?pp_id=" . $pp_id;
+    }
+    header("Location: " . $pending_url);
+    exit();
+}
+
+
+if (!empty($settings['redirect_url'])) {
+    if (filter_var($settings['redirect_url'], FILTER_VALIDATE_URL)) {
+        header("Location: " . $settings['redirect_url']);
+        exit();
+    }
+}
+
+
+
+$payment_link = pp_get_site_url() . '/pp-content/plugins/modules/customizable-payment-link-generator/link.php?slug=' . $settings['link_slug'];
+if ($settings['pretty_link_enabled'] === 'true' && !empty($settings['link_slug'])) {
+    $payment_link = pp_get_site_url() . '/' . trim($settings['link_slug'], '/');
 }
 
 ?>
