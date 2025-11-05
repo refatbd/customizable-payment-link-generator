@@ -7,7 +7,7 @@ global $cplg_db_checked;
 $cplg_db_checked = false;
 
 // --- Constants for Update Process ---
-define('CPLG_CURRENT_VERSION', '3.1.0');
+define('CPLG_CURRENT_VERSION', '3.1.1');
 define('CPLG_GITHUB_REPO', 'refatbd/customizable-payment-link-generator');
 define('CPLG_REFAT_SERVER_URL', 'https://wordpress.refat.ovh/api/update.php');
 define('CPLG_PLUGIN_SLUG', 'customizable-payment-link-generator');
@@ -63,6 +63,20 @@ function cplg_check_and_setup_database($conn) {
                           ADD COLUMN `current_stock` INT(11) DEFAULT 0 AFTER `total_stock`;");
         }
 
+        // --- NEW: Check for Standard Field Mode columns ---
+        $col_check_name_mode = $conn->query("SHOW COLUMNS FROM `{$table_name_only}` LIKE 'show_name_mode'");
+        if (!$col_check_name_mode || $col_check_name_mode->num_rows == 0) {
+            // Add the new columns
+            $conn->query("ALTER TABLE `{$table_name_only}` 
+                          ADD COLUMN `show_name_mode` VARCHAR(10) NOT NULL DEFAULT 'required' AFTER `use_system_currency`,
+                          ADD COLUMN `show_contact_mode` VARCHAR(10) NOT NULL DEFAULT 'required' AFTER `show_name_mode`;");
+            
+            // Try to migrate data from old columns if they exist
+            $conn->query("UPDATE `{$table_name_only}` SET `show_name_mode` = IF(`show_name` = 'true', 'required', 'disabled') WHERE `show_name` IS NOT NULL;");
+            $conn->query("UPDATE `{$table_name_only}` SET `show_contact_mode` = IF(`show_contact` = 'true', 'required', 'disabled') WHERE `show_contact` IS NOT NULL;");
+        }
+
+
     } else {
         // Table doesn't exist, run the setup
         cplg_setup_database($conn);
@@ -89,8 +103,8 @@ function cplg_get_default_settings() {
         'link_description' => 'Use this link to make a custom payment.',
         'link_currency' => 'USD',
         'use_system_currency' => 'false',
-        'show_name' => 'true',
-        'show_contact' => 'true',
+        'show_name_mode' => 'required', // 'disabled', 'optional', 'required'
+        'show_contact_mode' => 'required', // 'disabled', 'optional', 'required'
         'logo_url' => '',
         'favicon_url' => '',
         'show_footer_text' => 'true',
@@ -129,8 +143,8 @@ function cplg_setup_database($conn) {
         `link_description` TEXT,
         `link_currency` VARCHAR(10) NOT NULL DEFAULT 'USD',
         `use_system_currency` VARCHAR(10) NOT NULL DEFAULT 'false',
-        `show_name` VARCHAR(10) NOT NULL DEFAULT 'true',
-        `show_contact` VARCHAR(10) NOT NULL DEFAULT 'true',
+        `show_name_mode` VARCHAR(10) NOT NULL DEFAULT 'required',
+        `show_contact_mode` VARCHAR(10) NOT NULL DEFAULT 'required',
         `logo_url` VARCHAR(500),
         `favicon_url` VARCHAR(500),
         `show_footer_text` VARCHAR(10) NOT NULL DEFAULT 'true',
@@ -362,8 +376,8 @@ function cplg_save_link($data, $id = null, $is_setup = false) {
         'link_description' => escape_string($data['link_description']),
         'use_system_currency' => $use_system_currency,
         'link_currency' => $link_currency,
-        'show_name' => isset($data['show_name']) ? 'true' : 'false',
-        'show_contact' => isset($data['show_contact']) ? 'true' : 'false',
+        'show_name_mode' => in_array($data['show_name_mode'], ['disabled', 'optional', 'required']) ? $data['show_name_mode'] : 'required',
+        'show_contact_mode' => in_array($data['show_contact_mode'], ['disabled', 'optional', 'required']) ? $data['show_contact_mode'] : 'required',
         'logo_url' => filter_var($data['logo_url'], FILTER_SANITIZE_URL),
         'favicon_url' => filter_var($data['favicon_url'], FILTER_SANITIZE_URL),
         'show_footer_text' => isset($data['show_footer_text']) ? 'true' : 'false',
@@ -391,7 +405,7 @@ function cplg_save_link($data, $id = null, $is_setup = false) {
     if ($id) {
         $sql = "UPDATE `{$table_name}` SET 
                     link_slug = ?, link_enabled = ?, link_title = ?, link_description = ?, 
-                    use_system_currency = ?, link_currency = ?, show_name = ?, show_contact = ?, 
+                    use_system_currency = ?, link_currency = ?, show_name_mode = ?, show_contact_mode = ?, 
                     logo_url = ?, favicon_url = ?, show_footer_text = ?, footer_text = ?, 
                     pretty_link_enabled = ?, show_instruction = ?, instruction_text = ?,
                     amount_mode = ?, fixed_amount = ?, min_amount = ?, max_amount = ?,
@@ -403,7 +417,7 @@ function cplg_save_link($data, $id = null, $is_setup = false) {
         
         $stmt->bind_param("ssssssssssssssssdddssssiii", 
             $settings['link_slug'], $settings['link_enabled'], $settings['link_title'], $settings['link_description'],
-            $settings['use_system_currency'], $settings['link_currency'], $settings['show_name'], $settings['show_contact'],
+            $settings['use_system_currency'], $settings['link_currency'], $settings['show_name_mode'], $settings['show_contact_mode'],
             $settings['logo_url'], $settings['favicon_url'], $settings['show_footer_text'], $settings['footer_text'],
             $settings['pretty_link_enabled'], $settings['show_instruction'], $settings['instruction_text'],
             $settings['amount_mode'], $settings['fixed_amount'], $settings['min_amount'], $settings['max_amount'],
@@ -414,7 +428,7 @@ function cplg_save_link($data, $id = null, $is_setup = false) {
     } else {
         $sql = "INSERT INTO `{$table_name}` 
                     (link_slug, link_enabled, link_title, link_description, use_system_currency, link_currency, 
-                     show_name, show_contact, logo_url, favicon_url, show_footer_text, footer_text, 
+                     show_name_mode, show_contact_mode, logo_url, favicon_url, show_footer_text, footer_text, 
                      pretty_link_enabled, show_instruction, instruction_text, is_default,
                      amount_mode, fixed_amount, min_amount, max_amount, suggested_amounts, custom_fields, redirect_url,
                      allow_quantity, total_stock, current_stock) 
@@ -424,7 +438,7 @@ function cplg_save_link($data, $id = null, $is_setup = false) {
         
         $stmt->bind_param("sssssssssssssssisdddssssii",
             $settings['link_slug'], $settings['link_enabled'], $settings['link_title'], $settings['link_description'],
-            $settings['use_system_currency'], $settings['link_currency'], $settings['show_name'], $settings['show_contact'],
+            $settings['use_system_currency'], $settings['link_currency'], $settings['show_name_mode'], $settings['show_contact_mode'],
             $settings['logo_url'], $settings['favicon_url'], $settings['show_footer_text'], $settings['footer_text'],
             $settings['pretty_link_enabled'], $settings['show_instruction'], $settings['instruction_text'], $settings['is_default'],
             $settings['amount_mode'], $settings['fixed_amount'], $settings['min_amount'], $settings['max_amount'],

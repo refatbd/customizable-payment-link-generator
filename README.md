@@ -2,7 +2,7 @@
 
 **Plugin Name:** Customizable Payment Link Generator  
 **Description:** A PipraPay module to generate multiple, highly customizable payment links for fixed prices, custom amounts, or simple products.  
-**Version:** 3.1.0  
+**Version:** 3.1.1  
 **Author:** [Refat Rahman](https://github.com/refatbd)  
 **License:** [GPL-2.0+](https://www.gnu.org/licenses/gpl-2.0.html)  
 **Requires at least PipraPay version:** 1.0.0  
@@ -27,7 +27,7 @@
     -   **Inventory Management**: Set a "Total Stock" for an item, which automatically decreases on successful purchase. Links are disabled when stock reaches zero.
 
 -   **Advanced Form Builder**:
-    -   **Standard Fields**: Toggle Customer Name and Email/Phone fields on or off.
+    -   **Standard Fields**: Set Customer Name and Email/Phone fields to be **Required**, **Optional**, or **Disabled**.
     -   **Custom Fields**: Add unlimited custom fields to your form to collect extra data.
     -   **Field Types**: Supports **Text**, **Text Area**, **Dropdown Select**, **Checkboxes**, and **Radio Buttons**.
     -   **Validation**: Mark fields as "Required" and enable/disable them individually.
@@ -76,6 +76,10 @@
 ---
 
 ## 📜 Changelog
+
+### [3.1.1]
+-   **Feature:** Updated Standard Fields (Name, Contact) to support "Required", "Optional", and "Disabled" modes instead of just on/off.
+-   **Fix:** Corrected a bug where newlines in the Instruction Text field were not displaying properly on the admin edit page.
 
 ### [3.1.0]
 -   **Feature:** Added **Stock & Quantity Control** for fixed-price links, allowing for simple product sales and inventory management.

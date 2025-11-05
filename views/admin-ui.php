@@ -781,9 +781,26 @@ elseif ($action === 'create' || ($action === 'edit' && $edit_link)):
                     <div class="card-header"><h4 class="card-title">Form Fields</h4></div>
                     <div class="card-body">
                         <h5>Standard Fields:</h5>
-                        <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="show_name" name="show_name" <?php echo $edit_link['show_name'] === 'true' ? 'checked' : ''; ?>><label class="form-check-label" for="show_name">Customer Name</label></div>
-                        <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="show_contact" name="show_contact" <?php echo $edit_link['show_contact'] === 'true' ? 'checked' : ''; ?>><label class="form-check-label" for="show_contact">Customer Email or Phone</label></div>
                         
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="show_name_mode" class="form-label">Customer Name</label>
+                                <select class="form-select" id="show_name_mode" name="show_name_mode">
+                                    <option value="required" <?php echo $edit_link['show_name_mode'] === 'required' ? 'selected' : ''; ?>>Required</option>
+                                    <option value="optional" <?php echo $edit_link['show_name_mode'] === 'optional' ? 'selected' : ''; ?>>Optional</option>
+                                    <option value="disabled" <?php echo $edit_link['show_name_mode'] === 'disabled' ? 'selected' : ''; ?>>Disabled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="show_contact_mode" class="form-label">Customer Email or Phone</label>
+                                <select class="form-select" id="show_contact_mode" name="show_contact_mode">
+                                    <option value="required" <?php echo $edit_link['show_contact_mode'] === 'required' ? 'selected' : ''; ?>>Required</option>
+                                    <option value="optional" <?php echo $edit_link['show_contact_mode'] === 'optional' ? 'selected' : ''; ?>>Optional</option>
+                                    <option value="disabled" <?php echo $edit_link['show_contact_mode'] === 'disabled' ? 'selected' : ''; ?>>Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <hr>
                         
                         <h5>Custom Fields:</h5>
@@ -819,7 +836,13 @@ elseif ($action === 'create' || ($action === 'edit' && $edit_link)):
                         </div>
                         <div class="mb-3">
                             <label for="instruction_text" class="form-label">Instruction Text</label>
-                            <textarea class="form-control" id="instruction_text" name="instruction_text" rows="5"><?php echo htmlspecialchars(stripslashes(str_replace('\r\n', "\n", $edit_link['instruction_text']))); ?></textarea>
+                            <textarea class="form-control" id="instruction_text" name="instruction_text" rows="5"><?php 
+                                // FIX: Correctly process newlines for display in textarea
+                                $instruction_text = $edit_link['instruction_text'];
+                                $instruction_text = str_replace('\r\n', "\n", $instruction_text);
+                                $instruction_text = str_replace('\n', "\n", $instruction_text);
+                                echo htmlspecialchars(stripslashes($instruction_text)); 
+                            ?></textarea>
                             <small class="form-text text-muted">This text will appear above the payment form. Use line breaks.</small>
                         </div>
                     </div>

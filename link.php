@@ -7,7 +7,7 @@ if (file_exists(__DIR__."/../../../../pp-config.php")) {
         // Include core files
         if (file_exists(__DIR__.'/../../../../pp-include/pp-controller.php')) { include_once(__DIR__."/../../../../pp-include/pp-controller.php"); }
         if (file_exists(__DIR__.'/../../../../pp-include/pp-model.php')) { include_once(__DIR__."/../../../../pp-include/pp-model.php"); }
-        if (file_exists(__DIR__.'/../../../../pp-include/pp-view.php')) { include_once(__DIR__."/../../../../pp-include/pp-view.php"); }
+        if (file_exists(__DIR__.'/../../../../pp-include/pp-view.php')) { include_once(__DIR__.'/../../../../pp-include/pp-view.php'); }
     }
 } else {
     exit('Configuration file not found.');
@@ -221,13 +221,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 3. Validate Standard Fields
-    $name = $settings['show_name'] === 'true' ? filter_input(INPUT_POST, 'name', FILTER_DEFAULT) : 'Customer';
-    $email_or_phone = $settings['show_contact'] === 'true' ? filter_input(INPUT_POST, 'email_or_phone', FILTER_DEFAULT) : '';
+    $name = $settings['show_name_mode'] !== 'disabled' ? filter_input(INPUT_POST, 'name', FILTER_DEFAULT) : 'Customer';
+    $email_or_phone = $settings['show_contact_mode'] !== 'disabled' ? filter_input(INPUT_POST, 'email_or_phone', FILTER_DEFAULT) : '';
 
-    if ($settings['show_name'] === 'true' && empty($name)) {
+    if ($settings['show_name_mode'] === 'required' && empty($name)) {
         $errors[] = 'Full Name is required.';
     }
-    if ($settings['show_contact'] === 'true' && empty($email_or_phone)) {
+    if ($settings['show_contact_mode'] === 'required' && empty($email_or_phone)) {
         $errors[] = 'Email or Mobile is required.';
     }
 
@@ -310,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 // Robustly handle all newline variations for display
-$instruction_text = nl2br(htmlspecialchars(stripslashes(str_replace('\r\n', "\n", $settings['instruction_text']))));
+$instruction_text = nl2br(htmlspecialchars(stripslashes(str_replace(['\r\n', '\n'], "\n", $settings['instruction_text']))));
 
 // Prepare suggested amounts
 $suggested_amounts = [];
@@ -464,23 +464,28 @@ if ($settings['amount_mode'] === 'custom') {
                     <strong id="totalDue"><?php echo number_format($initial_amount, 2); ?> <?php echo $currency; ?></strong>
                 </div>
 
-                <h5 class="mt-4 mb-3 fs-6 fw-semibold">Customer Details</h5>
-                
-                <div class="row">
-                    <?php if ($settings['show_name'] === 'true'): ?>
-                    <div class="col-md-6 mb-3">
-                        <label for="name" class="form-label visually-hidden">Full Name</label>
-                        <input type="text" class="form-control" id="name" name="name" placeholder="Full Name" required>
-                    </div>
-                    <?php endif; ?>
+                <?php if ($settings['show_name_mode'] !== 'disabled' || $settings['show_contact_mode'] !== 'disabled'): ?>
+                    <h5 class="mt-4 mb-3 fs-6 fw-semibold">Customer Details</h5>
+                    <div class="row">
+                        <?php if ($settings['show_name_mode'] !== 'disabled'): ?>
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label visually-hidden">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="Full Name<?php echo $settings['show_name_mode'] === 'required' ? ' *' : ''; ?>" 
+                                   <?php echo $settings['show_name_mode'] === 'required' ? 'required' : ''; ?>>
+                        </div>
+                        <?php endif; ?>
 
-                    <?php if ($settings['show_contact'] === 'true'): ?>
-                    <div class="col-md-6 mb-3">
-                         <label for="email_or_phone" class="form-label visually-hidden">Email or Mobile</label>
-                        <input type="text" class="form-control" id="email_or_phone" name="email_or_phone" placeholder="Email or Mobile" required>
+                        <?php if ($settings['show_contact_mode'] !== 'disabled'): ?>
+                        <div class="col-md-6 mb-3">
+                             <label for="email_or_phone" class="form-label visually-hidden">Email or Mobile</label>
+                            <input type="text" class="form-control" id="email_or_phone" name="email_or_phone" 
+                                   placeholder="Email or Mobile<?php echo $settings['show_contact_mode'] === 'required' ? ' *' : ''; ?>" 
+                                   <?php echo $settings['show_contact_mode'] === 'required' ? 'required' : ''; ?>>
+                        </div>
+                        <?php endif; ?>
                     </div>
-                    <?php endif; ?>
-                </div>
+                <?php endif; ?>
 
                 <?php if (!empty($custom_fields)): ?>
                     <?php foreach ($custom_fields as $field): ?>
