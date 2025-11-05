@@ -1227,10 +1227,28 @@ function cplg_check_for_github_updates() {
                  $download_url = $release_data['zipball_url'];
             }
 
+            $html_changelog = $release_data['body'];
+            
+            // Convert ### headers to <h5>
+            $html_changelog = preg_replace('/^### (.*)$/m', '<h5>$1</h5>', $html_changelog);
+            
+            // Convert **bold** to <strong>
+            $html_changelog = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $html_changelog);
+            
+            // Convert list items (e.g., '- item' or '* item') to <li>
+            $html_changelog = preg_replace('/^[-*]\s+(.*)$/m', '<li>$1</li>', $html_changelog);
+            
+            // Convert remaining newlines to <br>
+            $html_changelog = nl2br($html_changelog);
+            
+            // Clean up extra <br> tags that might appear inside the list items
+            $html_changelog = str_replace(['<li><br />', '<br />
+			</li>', '<h5><br />'], ['<li>', '</li>', '<h5>'], $html_changelog);
+
             return [
                 'new_version' => $latest_version,
                 'download_url' => $download_url,
-                'changelog' => $release_data['body']
+                'changelog' => $html_changelog
             ];
         }
     }
