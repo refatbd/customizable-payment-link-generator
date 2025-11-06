@@ -421,7 +421,7 @@ if ($settings['amount_mode'] === 'custom') {
 
         <div class="payment-card">
             <h2 class="card-title"><?php echo htmlspecialchars($settings['link_title']); ?></h2>
-            <p class="card-subtitle"><?php echo htmlspecialchars($settings['link_description']); ?></p>
+            <p class="card-subtitle"><?php echo htmlspecialchars(stripslashes($settings['link_description'])); ?></p>
             
             <form method="post" action="" id="paymentForm">
                 

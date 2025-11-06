@@ -690,7 +690,7 @@ elseif ($action === 'create' || ($action === 'edit' && $edit_link)):
 
                         <div class="mb-3">
                             <label for="link_description" class="form-label">Link Description</label>
-                            <textarea class="form-control" id="link_description" name="link_description" rows="3"><?php echo htmlspecialchars($edit_link['link_description']); ?></textarea>
+                            <textarea class="form-control" id="link_description" name="link_description" rows="3"><?php echo htmlspecialchars(stripslashes($edit_link['link_description'])); ?></textarea>
                         </div>
                          <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" id="use_system_currency" name="use_system_currency" <?php echo $edit_link['use_system_currency'] === 'true' ? 'checked' : ''; ?>>
